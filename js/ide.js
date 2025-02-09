@@ -671,17 +671,52 @@ document.addEventListener("DOMContentLoaded", async function () {
     layout.registerComponent("chatbot", function (container, state) {
       const element = $(`
         <div class="flex flex-col h-full">
-          <div id="chat_history" class="flex-1"></div>
+          <div id="chat-history" class="flex-1 overflow-y-auto mt-4"></div>
           <div class="p-4">
             <div id="prompt" class="flex gap-2">
-              <input id="chat_input" class="flex-1 text-gray-300 border border-gray-300 rounded-lg resize-none w-3/4 px-2" placeholder="Message your Chat Assistant"></input>
-              <button id="send_btn" class="text-white bg-blue-500 rounded-lg px-4 py-2 hover:bg-blue-600 transition-colors">Send</button>
+              <textarea id="chat-input" class="flex-1 text-gray-300 text-wrap border border-gray-300 rounded-lg resize-none w-3/4 px-2 pt-1" placeholder="Message your Chat Assistant"></textarea>
+              <button id="send-btn" class="text-white bg-blue-500 rounded-lg px-4 py-2 hover:bg-blue-600 transition-colors">Send</button>
             </div>
           </div>
         </div>
       `);
 
       container.getElement().append(element);
+
+      // Chatbot functionality
+      const chatHistory = element.find("#chat-history");
+      const chatInput = element.find("#chat-input");
+      const sendBtn = element.find("#send-btn");
+
+      function addMessage(message, isUser = true) {
+        const messageClass = isUser
+          ? "bg-blue-500 text-white ml-auto mr-4 mb-4"
+          : "text-gray-300 mr-auto ml-4 mb-8";
+
+        chatHistory.append(`
+          <div class="flex-1 max-w-[65%] p-3 rounded-lg ${messageClass}">
+          ${message}
+          </div>
+        `);
+        chatHistory.scrollTop(chatHistory[0].scrollHeight);
+      }
+
+      container
+        .getElement()
+        .find("#send-btn")
+        .click(function () {
+          console.log("Send button clicked");
+          const message = chatInput.val().trim();
+          if (message) {
+            addMessage(message, true);
+            chatInput.val("");
+
+            // Simulate bot response (replace with actual API call)
+            setTimeout(() => {
+              addMessage(`I received: ${message}`, false);
+            }, 1000);
+          }
+        });
     });
 
     layout.on("initialised", function () {
