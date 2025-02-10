@@ -686,7 +686,6 @@ document.addEventListener("DOMContentLoaded", async function () {
       // Chatbot functionality
       const chatHistory = element.find("#chat-history");
       const chatInput = element.find("#chat-input");
-      const sendBtn = element.find("#send-btn");
 
       function addMessage(message, isUser = true) {
         const messageClass = isUser
@@ -704,17 +703,45 @@ document.addEventListener("DOMContentLoaded", async function () {
       container
         .getElement()
         .find("#send-btn")
-        .click(function () {
+        .click(async function () {
           console.log("Send button clicked");
           const message = chatInput.val().trim();
           if (message) {
             addMessage(message, true);
             chatInput.val("");
 
-            // Simulate bot response (replace with actual API call)
-            setTimeout(() => {
-              addMessage(`I received: ${message}`, false);
-            }, 1000);
+            const userPrompt =
+              "User message: " +
+              message +
+              "\n\nCode:\n" +
+              sourceEditor.getValue();
+
+            try {
+              const response = await fetch("http://localhost:3001/api/chat", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  messages: [
+                    {
+                      role: "user",
+                      content: userPrompt,
+                    },
+                  ],
+                }),
+              });
+
+              const data = await response.json();
+              chatHistory.append(`
+                <div class="flex-1 max-w-[65%] p-3 rounded-lg text-gray-300 mr-auto ml-4 mb-8">
+                  ${data.response}
+                </div>
+              `);
+            } catch (error) {
+              console.error("Error:", error);
+              return "Failed to get response";
+            }
           }
         });
     });
