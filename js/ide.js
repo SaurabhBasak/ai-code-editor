@@ -664,7 +664,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             const inlineAiAssistant = document.createElement("div");
             inlineAiAssistant.id = "inline-ai-assistant";
             inlineAiAssistant.className =
-              "absolute z-50 bg-slate-800 border-2 border-blue-400";
+              "max-h-80 absolute z-50 bg-slate-800 border-2 border-blue-400 overflow-y-scroll";
             inlineAiAssistant.style.top = `${top}px`;
             inlineAiAssistant.style.left = `${left}px`;
 
@@ -686,6 +686,8 @@ document.addEventListener("DOMContentLoaded", async function () {
             domNode.appendChild(inlineButton);
             inlineAiAssistant.appendChild(domNode);
             document.body.appendChild(inlineAiAssistant);
+
+            inlinePrompt.focus();
 
             const aiResponseElement = document.createElement("div");
             aiResponseElement.className =
@@ -720,18 +722,6 @@ document.addEventListener("DOMContentLoaded", async function () {
                   const data = await response.json();
                   const aiResponse = "AI Assistant: " + data.response;
                   aiResponseElement.innerText = aiResponse;
-
-                  // sourceEditor.executeEdits("", [
-                  //   {
-                  //     range: new monaco.Range(
-                  //       position.lineNumber,
-                  //       position.column,
-                  //       position.lineNumber,
-                  //       position.column
-                  //     ),
-                  //     text: aiResponse,
-                  //   },
-                  // ]);
                 } catch (error) {
                   console.error("Error:", error);
                   return "Failed to get response";
