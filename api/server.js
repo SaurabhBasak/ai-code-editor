@@ -14,7 +14,7 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const systemPrompt = `You are an AI assistant that is part of the online code IDE Judge0. Your job is to answer the user's questions pertaining to the code in the editor, which will be provided to you for context. Your role will include suggesting fixes for code and if asked for, providing explanations or improvements for the code. You are expected to provide helpful and accurate responses to the user's queries. You are also expected to be polite and professional in your responses. If you are unsure about a response, ask for clarification or provide a general response.`;
 
-app.post("/api/chat", async (req, res) => {
+app.post("/api/ai-chat", async (req, res) => {
   const { messages } = req.body;
 
   const userPrompt = messages[0].content;

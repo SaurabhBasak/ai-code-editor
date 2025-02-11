@@ -640,6 +640,115 @@ document.addEventListener("DOMContentLoaded", async function () {
         monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter,
         run
       );
+
+      document.addEventListener("keyup", function (event) {
+        if (event.ctrlKey && event.key === "k") {
+          if (document.getElementById("inline-ai-assistant")) {
+            return;
+          }
+          event.preventDefault();
+
+          const selectedText = sourceEditor
+            .getModel()
+            .getValueInRange(sourceEditor.getSelection());
+          if (selectedText.trim() !== "") {
+            const position = sourceEditor.getPosition();
+            const coords = sourceEditor.getScrolledVisiblePosition(position);
+            const editorCoords = sourceEditor
+              .getDomNode()
+              .getBoundingClientRect();
+
+            const top = editorCoords.top + coords.top;
+            const left = editorCoords.left + coords.left;
+
+            const inlineAiAssistant = document.createElement("div");
+            inlineAiAssistant.id = "inline-ai-assistant";
+            inlineAiAssistant.className =
+              "absolute z-50 bg-slate-800 border-2 border-blue-400";
+            inlineAiAssistant.style.top = `${top}px`;
+            inlineAiAssistant.style.left = `${left}px`;
+
+            const domNode = document.createElement("div");
+            domNode.className = "flex gap-2 rounded-lg text-white p-3";
+
+            const inlinePrompt = document.createElement("textarea");
+            inlinePrompt.id = "inline-prompt";
+            inlinePrompt.className =
+              "resize-none border border-gray-300 px-2 pt-1";
+            inlinePrompt.placeholder = "Ask your AI Assistant";
+
+            const inlineButton = document.createElement("button");
+            inlineButton.className =
+              "text-white bg-blue-500 rounded-lg px-4 py-2 hover:bg-blue-600 transition-colors";
+            inlineButton.innerText = "Ask";
+
+            domNode.appendChild(inlinePrompt);
+            domNode.appendChild(inlineButton);
+            inlineAiAssistant.appendChild(domNode);
+            document.body.appendChild(inlineAiAssistant);
+
+            const aiResponseElement = document.createElement("div");
+            aiResponseElement.className =
+              "flex-1 p-3 rounded-lg text-gray-300 max-w-md";
+            inlineAiAssistant.appendChild(aiResponseElement);
+
+            inlineButton.addEventListener("click", async function () {
+              const prompt = inlinePrompt.value.trim();
+              if (prompt) {
+                const userPrompt =
+                  "User message: " + prompt + "\n\nCode:\n" + selectedText;
+
+                try {
+                  const response = await fetch(
+                    "http://localhost:3001/api/ai-chat",
+                    {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({
+                        messages: [
+                          {
+                            role: "user",
+                            content: userPrompt,
+                          },
+                        ],
+                      }),
+                    }
+                  );
+
+                  const data = await response.json();
+                  const aiResponse = "AI Assistant: " + data.response;
+                  aiResponseElement.innerText = aiResponse;
+
+                  // sourceEditor.executeEdits("", [
+                  //   {
+                  //     range: new monaco.Range(
+                  //       position.lineNumber,
+                  //       position.column,
+                  //       position.lineNumber,
+                  //       position.column
+                  //     ),
+                  //     text: aiResponse,
+                  //   },
+                  // ]);
+                } catch (error) {
+                  console.error("Error:", error);
+                  return "Failed to get response";
+                }
+              }
+            });
+          }
+        }
+      });
+
+      document.addEventListener("keyup", function (event) {
+        if (event.key === "Escape") {
+          if (document.getElementById("inline-ai-assistant")) {
+            document.getElementById("inline-ai-assistant").remove();
+          }
+        }
+      });
     });
 
     layout.registerComponent("stdin", function (container, state) {
@@ -717,20 +826,23 @@ document.addEventListener("DOMContentLoaded", async function () {
               sourceEditor.getValue();
 
             try {
-              const response = await fetch("http://localhost:3001/api/chat", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  messages: [
-                    {
-                      role: "user",
-                      content: userPrompt,
-                    },
-                  ],
-                }),
-              });
+              const response = await fetch(
+                "http://localhost:3001/api/ai-chat",
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    messages: [
+                      {
+                        role: "user",
+                        content: userPrompt,
+                      },
+                    ],
+                  }),
+                }
+              );
 
               const data = await response.json();
               chatHistory.append(`
